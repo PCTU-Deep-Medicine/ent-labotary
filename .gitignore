@@ -2,4 +2,5 @@
 /venv
 /outputs
 /wandb
+/__pycache__
 debug.ipynb
