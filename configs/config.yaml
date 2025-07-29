@@ -1,0 +1,3 @@
+defaults:
+  - experiment: baseline
+  - _self_

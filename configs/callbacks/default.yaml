@@ -1,0 +1,15 @@
+checkpoint:
+  _target_: pytorch_lightning.callbacks.ModelCheckpoint
+  dirpath: outputs/checkpoints/${experiment.name}_${experiment.encoder.model_name}_fold${fold}_${now:%Y%m%d_%H%M%S}
+  filename: best
+  monitor: val/f1
+  mode: max
+  save_top_k: 1
+  verbose: true
+early_stop:
+  _target_: pytorch_lightning.callbacks.EarlyStopping
+  monitor: val/f1            
+  mode: max                        
+  patience: 10                     
+  min_delta: 0.01                 
+  verbose: true

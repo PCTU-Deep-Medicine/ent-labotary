@@ -1,0 +1,10 @@
+_target_: src.datamodule.ent_data.CrossValENTDataModule
+
+csv_file: data/ent_data.csv
+image_dir: data/images
+batch_size: 32
+num_workers: 4
+image_size: 224
+num_folds: 5
+current_fold: ${fold}
+seed: 42

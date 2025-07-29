@@ -1,0 +1,19 @@
+
+
+defaults:
+  - _self_
+  - /encoder: resnet18
+  - /loss: ce
+  - /datamodule: mnist
+  - /trainer: default
+  - /logger: wandb
+  - /callbacks: default
+
+model:
+  _target_: src.experiment.base_module.BaseModule
+  encoder: ${experiment.encoder}
+  loss: ${experiment.loss}
+
+
+name: baseline
+
