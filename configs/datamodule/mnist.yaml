@@ -4,5 +4,5 @@ batch_size: 32
 num_workers: 4
 image_size: 28
 num_folds: 5
-current_fold: ${fold}
+current_fold: 0
 seed: 42

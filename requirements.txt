@@ -21,3 +21,5 @@ black
 flake8
 isort
 torchmetrics
+dotenv
+dvc

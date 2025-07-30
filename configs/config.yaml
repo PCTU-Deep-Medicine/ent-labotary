@@ -1,3 +1,4 @@
+user: null
 defaults:
   - experiment: baseline
   - _self_
