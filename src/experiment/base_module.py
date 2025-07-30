@@ -1,7 +1,8 @@
-import torch
 import pytorch_lightning as pl
-from hydra.utils import instantiate
+import torch
+
 from src.utils.metrics import MetricsManager
+
 
 class BaseModule(pl.LightningModule):
     def __init__(self, encoder, loss, num_classes: int = 10, fold_id: int = 0):
@@ -27,7 +28,9 @@ class BaseModule(pl.LightningModule):
 
     def on_train_epoch_end(self):
         avg_loss = torch.stack(self.train_losses).mean()
-        self.log(f"train/loss_fold{self.fold_id}", avg_loss, on_epoch=True, prog_bar=True)
+        self.log(
+            f"train/loss_fold{self.fold_id}", avg_loss, on_epoch=True, prog_bar=True
+        )
         self.train_losses.clear()
 
     def validation_step(self, batch, batch_idx):

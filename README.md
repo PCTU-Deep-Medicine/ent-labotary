@@ -35,6 +35,13 @@
    wandb login
    ```
 
+5. **Install pre-commit hook:**
+   
+   This is required for contributors
+   ```bash
+   pre-commit install
+   ```
+
 ## Usage
 
 ### User Name Requirement
