@@ -1,4 +1,3 @@
 _target_: pytorch_lightning.loggers.WandbLogger
 project: test_project
-name: ${experiment.name}_${experiment.encoder.model_name}_fold${fold}_${now:%Y%m%d_%H%M%S}
-log_model: true
+name: ${user}_${experiment.name}_${experiment.encoder.model_name}_${now:%Y%m%d_%H%M%S}
