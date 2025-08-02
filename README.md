@@ -88,7 +88,7 @@ To change the default behavior of the project, you can directly edit the YAML fi
 Hydra's sweeping functionality allows you to run multiple experiments with different hyperparameter combinations. To perform a sweep over different encoders, you can use the following command:
 
 ```bash
-python main.py +user=<your_name> --multirun encoder=resnet18,vit16b
+python main.py -m +user=<your_name> +encoder@experiment.encoder=/encoder/resnet18,/encoder/vit16b
 ```
 
 This will run two experiments, one with the `resnet18` encoder and another with the `vit16b` encoder.
