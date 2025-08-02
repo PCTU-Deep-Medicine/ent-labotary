@@ -1,5 +1,5 @@
 _target_: timm.create_model
-model_name: vit_base_patch16_224
+model_name: efficientnet_b0
 pretrained: true
 num_classes: 12
-in_chans: 3 # Test for mnist
+in_chans:  3
