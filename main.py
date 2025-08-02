@@ -42,31 +42,33 @@ def main(cfg: DictConfig) -> None:
 
         # Instantiate callbacks từ config
         callbacks = [instantiate(cb) for cb in cfg.experiment.callbacks.values()]
-
         # Tìm checkpoint callback trong list callback
         checkpoint_callback = next(
             (cb for cb in callbacks if isinstance(cb, ModelCheckpoint)), None
         )
-
+        early_stopping_callback = next(
+            (cb for cb in callbacks if isinstance(cb, pl.callbacks.EarlyStopping)), None
+        )
         # Nếu có checkpoint callback thì chỉnh đường dẫn và metric monitor
         if checkpoint_callback:
             checkpoint_callback.dirpath = os.path.join(
                 checkpoint_callback.dirpath, f"fold_{fold}"
             )
             checkpoint_callback.monitor = f"val/fold_{fold}/macro/f1"
+        # Nếu có early stopping callback thì chỉnh monitor
+        if early_stopping_callback:
+            early_stopping_callback.monitor = f"val/fold_{fold}/macro/f1"
 
-            trainer = pl.Trainer(
-                **cfg.experiment.trainer,
-                logger=logger,
-                callbacks=[checkpoint_callback],
-                enable_progress_bar=True,
-            )
-
-            # Train the model
-            trainer.fit(model, data)
-
-            best_models.append(trainer.checkpoint_callback.best_model_path)
-            best_scores.append(trainer.checkpoint_callback.best_model_score.item())
+        trainer = pl.Trainer(
+            **cfg.experiment.trainer,
+            logger=logger,
+            callbacks=[checkpoint_callback, early_stopping_callback],
+            enable_progress_bar=True,
+        )
+        # Train the model
+        trainer.fit(model, data)
+        best_models.append(trainer.checkpoint_callback.best_model_path)
+        best_scores.append(trainer.checkpoint_callback.best_model_score.item())
 
     wandb.finish()
     best_model = best_models[best_scores.index(max(best_scores))]
