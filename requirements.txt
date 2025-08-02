@@ -24,3 +24,4 @@ torchmetrics
 dotenv
 dvc
 pre-commit
+gdown

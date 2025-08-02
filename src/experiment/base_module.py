@@ -5,7 +5,7 @@ from src.utils.metrics import MetricsManager
 
 
 class BaseModule(pl.LightningModule):
-    def __init__(self, encoder, loss, num_classes: int = 10, fold_id: int = 0):
+    def __init__(self, encoder, loss, num_classes: int = 12, fold_id: int = 0):
         super().__init__()
         self.save_hyperparameters(ignore=["encoder", "loss"])
         self.fold_id = fold_id

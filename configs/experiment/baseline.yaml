@@ -2,9 +2,9 @@
 
 defaults:
   - _self_
-  - /encoder: resnet18
+  - /encoder@experiment.encoder: resnet50
   - /loss: ce
-  - /datamodule: mnist
+  - /datamodule: default
   - /trainer: default
   - /logger: wandb
   - /callbacks: default

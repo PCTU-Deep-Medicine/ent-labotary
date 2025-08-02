@@ -35,7 +35,7 @@ class CrossValENTDataModule(LightningDataModule):
         batch_size: int = 32,
         num_workers: int = 4,
         image_size: int = 224,
-        k_folds: int = 5,
+        num_folds: int = 5,
         current_fold: int = 0,
         seed: int = 42,
     ):
@@ -46,17 +46,23 @@ class CrossValENTDataModule(LightningDataModule):
         self.batch_size = batch_size
         self.num_workers = num_workers
         self.image_size = image_size
-        self.k_folds = k_folds
+        self.num_folds = num_folds
         self.current_fold = current_fold
         self.seed = seed
 
     def setup(self, stage=None):
         df = pd.read_csv(self.csv_file)
-        assert {'filename', 'type', 'label'}.issubset(df.columns)
+        assert {'filename', 'label_type', 'label'}.issubset(df.columns)
 
         transform = transforms.Compose(
             [
                 transforms.Resize((self.image_size, self.image_size)),
+                transforms.RandomHorizontalFlip(),
+                transforms.RandomVerticalFlip(),
+                transforms.RandomRotation(10),
+                transforms.ColorJitter(
+                    brightness=0.2, contrast=0.2, saturation=0.2, hue=0.1
+                ),
                 transforms.ToTensor(),
             ]
         )
@@ -66,7 +72,7 @@ class CrossValENTDataModule(LightningDataModule):
         )
 
         skf = StratifiedKFold(
-            n_splits=self.k_folds, shuffle=True, random_state=self.seed
+            n_splits=self.num_folds, shuffle=True, random_state=self.seed
         )
         indices = list(skf.split(df['filename'], df['label']))[self.current_fold]
 

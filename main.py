@@ -8,7 +8,8 @@ from omegaconf import DictConfig, OmegaConf
 from pytorch_lightning.callbacks import ModelCheckpoint
 from pytorch_lightning.loggers import WandbLogger
 
-# from src.utils.save_ckpt import save_and_push_best_model
+import wandb
+from src.utils.save_ckpt import save_and_push_best_model
 
 
 @hydra.main(version_base=None, config_path="configs", config_name="config")
@@ -67,12 +68,11 @@ def main(cfg: DictConfig) -> None:
             best_models.append(trainer.checkpoint_callback.best_model_path)
             best_scores.append(trainer.checkpoint_callback.best_model_score.item())
 
-        break
-
+    wandb.finish()
     best_model = best_models[best_scores.index(max(best_scores))]
 
     pprint(f"Best model path: {best_model}")
-    # save_and_push_best_model(best_model_path=best_model)
+    save_and_push_best_model(best_model_path=best_model)
 
 
 if __name__ == "__main__":
