@@ -1,1 +1,1 @@
-python3 main.py -m +user=c +encoder@experiment.encoder=resnet50,efficientnet,vit16b,swin16b
+python3 main.py -m +user=cuong +encoder@experiment.encoder=resnet50,efficientnet,vit16b,swin16b

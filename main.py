@@ -46,9 +46,9 @@ def main(cfg: DictConfig) -> None:
         checkpoint_callback = next(
             (cb for cb in callbacks if isinstance(cb, ModelCheckpoint)), None
         )
-        early_stopping_callback = next(
-            (cb for cb in callbacks if isinstance(cb, pl.callbacks.EarlyStopping)), None
-        )
+        # early_stopping_callback = next(
+        #     (cb for cb in callbacks if isinstance(cb, pl.callbacks.EarlyStopping)), None
+        # )
         # Nếu có checkpoint callback thì chỉnh đường dẫn và metric monitor
         if checkpoint_callback:
             checkpoint_callback.dirpath = os.path.join(
@@ -56,13 +56,13 @@ def main(cfg: DictConfig) -> None:
             )
             checkpoint_callback.monitor = f"val/fold_{fold}/macro/f1"
         # Nếu có early stopping callback thì chỉnh monitor
-        if early_stopping_callback:
-            early_stopping_callback.monitor = f"val/fold_{fold}/macro/f1"
+        # if early_stopping_callback:
+        #     early_stopping_callback.monitor = f"val/fold_{fold}/macro/f1"
 
         trainer = pl.Trainer(
             **cfg.experiment.trainer,
             logger=logger,
-            callbacks=[checkpoint_callback, early_stopping_callback],
+            callbacks=[checkpoint_callback],
             enable_progress_bar=True,
         )
         # Train the model
