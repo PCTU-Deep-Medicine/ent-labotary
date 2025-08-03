@@ -9,8 +9,7 @@ checkpoint:
   verbose: true
 early_stop:
   _target_: pytorch_lightning.callbacks.EarlyStopping
-  monitor: val/f1            
-  mode: max                        
-  patience: 5                     
-  min_delta: 0.01                 
+  monitor: val/loss
+  mode: min
+  patience: 5
   verbose: true
