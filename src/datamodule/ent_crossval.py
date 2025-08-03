@@ -72,7 +72,7 @@ class CrossValENTDataModule(LightningDataModule):
         )
 
         skf = StratifiedKFold(
-            n_splits=self.num_folds, shuffle=True, random_state=self.seed
+            n_splits=self.num_folds, shuffle=False, random_state=self.seed
         )
         indices = list(skf.split(df['filename'], df['label']))[self.current_fold]
 
