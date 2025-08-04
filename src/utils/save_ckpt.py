@@ -1,22 +1,20 @@
-import os
-import shutil
+from huggingface_hub import create_repo, upload_folder
 
 
 def save_and_push_best_model(
-    best_model_path: str,
-    output_dir: str = "/content/drive/MyDrive/ent_models/best_models",
+    model_dir: str,
 ):
     """
-    Lưu model tốt nhất vào thư mục Google Drive đã mount.
-    Args:
-        best_model_path (str): Đường dẫn tới file model tốt nhất.
-        output_dir (str): Thư mục trong Google Drive để lưu model.
+    Upload the model to HuggingFace
     """
-    # Tạo thư mục output trong Google Drive nếu chưa có
-    os.makedirs(output_dir, exist_ok=True)
 
-    # Copy file model vào Drive
-    dst_path = os.path.join(output_dir, os.path.basename(best_model_path))
-    shutil.copy(best_model_path, dst_path)
+    # replace .env by "hf_wy............."
+    model_name = model_dir.split("/")[-1]
 
-    print(f"[INFO] Best model copied to Google Drive: {dst_path}")
+    # FIX: Must setup repo_id before running this script
+    repo_id = ""
+
+    create_repo(repo_id, exist_ok=True)
+    upload_folder(
+        repo_id=repo_id, folder_path=model_dir, commit_message=f"uploading {model_name}"
+    )

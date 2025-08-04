@@ -1,5 +1,4 @@
 from collections import defaultdict
-
 import matplotlib.pyplot as plt
 import numpy as np
 from pytorch_lightning.loggers import WandbLogger
@@ -17,7 +16,7 @@ from torchmetrics.classification import (
 
 import wandb
 
-
+# Custom metrics manager for multiclass classification
 class MetricsManager(Module):
     def __init__(self, num_classes, fold_id=0):
         super().__init__()
@@ -27,41 +26,41 @@ class MetricsManager(Module):
         # Metrics
         self.metrics = ModuleDict(
             {
-                'val_accuracy': Accuracy(
+                "val_accuracy": Accuracy(
                     task="multiclass", num_classes=num_classes, average="macro"
                 ),
-                'val_precision': Precision(
+                "val_precision": Precision(
                     task="multiclass", num_classes=num_classes, average="macro"
                 ),
-                'val_precision_pc': Precision(
+                "val_precision_pc": Precision(
                     task="multiclass", num_classes=num_classes, average=None
                 ),
-                'val_recall': Recall(
+                "val_recall": Recall(
                     task="multiclass", num_classes=num_classes, average="macro"
                 ),
-                'val_recall_pc': Recall(
+                "val_recall_pc": Recall(
                     task="multiclass", num_classes=num_classes, average=None
                 ),
-                'val_f1': F1Score(
+                "val_f1": F1Score(
                     task="multiclass", num_classes=num_classes, average="macro"
                 ),
-                'val_f1_pc': F1Score(
+                "val_f1_pc": F1Score(
                     task="multiclass", num_classes=num_classes, average=None
                 ),
-                'val_specificity': Specificity(
+                "val_specificity": Specificity(
                     task="multiclass", num_classes=num_classes, average="macro"
                 ),
-                'val_specificity_pc': Specificity(
+                "val_specificity_pc": Specificity(
                     task="multiclass", num_classes=num_classes, average=None
                 ),
-                'val_auroc': AUROC(
+                "val_auroc": AUROC(
                     task="multiclass", num_classes=num_classes, average="macro"
                 ),
-                'val_auroc_pc': AUROC(
+                "val_auroc_pc": AUROC(
                     task="multiclass", num_classes=num_classes, average=None
                 ),
-                'val_roc': MulticlassROC(num_classes=num_classes),
-                'val_confusion_matrix': MulticlassConfusionMatrix(
+                "val_roc": MulticlassROC(num_classes=num_classes),
+                "val_confusion_matrix": MulticlassConfusionMatrix(
                     num_classes=num_classes
                 ),
             }

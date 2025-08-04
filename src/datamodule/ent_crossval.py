@@ -19,9 +19,9 @@ class EntDataset(Dataset):
 
     def __getitem__(self, idx):
         row = self.dataframe.iloc[idx]
-        img_path = os.path.join(self.image_dir, row['filename'])
+        img_path = str(os.path.join(self.image_dir, row["filename"]))
         image = Image.open(img_path).convert("RGB")
-        label = int(row['label'])
+        label = int(row["label"])
         if self.transform:
             image = self.transform(image)
         return image, label
@@ -39,7 +39,6 @@ class CrossValENTDataModule(LightningDataModule):
         current_fold: int = 0,
         seed: int = 42,
     ):
-
         super().__init__()
         self.csv_file = csv_file
         self.image_dir = image_dir
@@ -52,7 +51,7 @@ class CrossValENTDataModule(LightningDataModule):
 
     def setup(self, stage=None):
         df = pd.read_csv(self.csv_file)
-        assert {'filename', 'label_type', 'label'}.issubset(df.columns)
+        assert {"filename", "label_type", "label"}.issubset(df.columns)
 
         transform = transforms.Compose(
             [
@@ -74,7 +73,7 @@ class CrossValENTDataModule(LightningDataModule):
         skf = StratifiedKFold(
             n_splits=self.num_folds, shuffle=False, random_state=self.seed
         )
-        indices = list(skf.split(df['filename'], df['label']))[self.current_fold]
+        indices = list(skf.split(df["filename"], df["label"]))[self.current_fold]
 
         train_index, val_index = indices
         self.train_dataset = Subset(dataset, train_index)
