@@ -27,13 +27,19 @@
    pip install -r requirements.txt
    ```
 
-4. **Logging in to Weights & Biases:**
+4. **Create an env file:**
 
-   Before running any experiments, you need to log in to your Weights & Biases account. Run the following command and follow the instructions:
+   Create a `.env` file in the root directory of the project to store your environment variables. This file should include your Wandb API key, HF token and any other sensitive information. For example:
 
    ```bash
-   wandb login
+   
+   touch .env
+
+
    ```
+   After creating the file, you must follow the instructions in the `.env.example` file to set up your environment variables. This is crucial for the project to run correctly, especially for features like Wandb logging and Hugging Face model access.
+
+   ```bash
 
 5. **Install pre-commit hook:**
    
@@ -113,4 +119,5 @@ The configurations for this project are managed by Hydra and are located in the 
 ├── main.py                 # Main entry point
 ├── README.md               # This file
 └── requirements.txt        # Project dependencies
+└── .env                    # Environment variables
 ```
