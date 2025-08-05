@@ -1,5 +1,4 @@
 _target_: timm.create_model
-model_name: vit_base_patch16_224
+model_name: vit_base_patch16_224.augreg_in21k
 pretrained: true
 num_classes: 12
-in_chans: 3 # Test for mnist
