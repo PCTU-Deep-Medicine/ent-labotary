@@ -1,0 +1,4 @@
+_target_: timm.create_model
+model_name: convnext_nano
+pretrained: true
+num_classes: 12
