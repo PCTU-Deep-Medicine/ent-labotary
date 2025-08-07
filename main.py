@@ -14,67 +14,57 @@ from src.utils.save_ckpt import save_and_push_best_model
 
 @hydra.main(version_base=None, config_path="configs", config_name="config")
 def main(cfg: DictConfig) -> None:
-
+    # ─────────── kiểm tra user ───────────
     if cfg.user is None:
         raise hydra.errors.HydraException(
-            "You must set the 'user' field in the config to your Wandb username."
-            " Use +user=<your_username> to set it."
+            "Bạn phải truyền +user=<wandb_username> khi chạy!"
         )
 
     pprint(cfg)
-    best_models = []
-    best_scores = []
 
-    for fold in range(cfg.experiment.datamodule.num_folds):
-        cfg.experiment.datamodule.current_fold = fold
+    # ─────────── khởi tạo model & datamodule ───────────
+    model = instantiate(cfg.experiment.model)
+    datamodule = instantiate(cfg.experiment.datamodule)
 
-        model = instantiate(cfg.experiment.model)
-        data = instantiate(cfg.experiment.datamodule)
-
-        logger = (
-            instantiate(cfg.experiment.logger) if "logger" in cfg.experiment else None
+    # ─────────── logger (wandb) ───────────
+    logger = instantiate(cfg.experiment.logger) if "logger" in cfg.experiment else None
+    if isinstance(logger, WandbLogger):
+        logger.experiment.config.update(
+            OmegaConf.to_container(cfg, resolve=True), allow_val_change=True
         )
 
-        if isinstance(logger, WandbLogger):
-            logger.experiment.config.update(
-                OmegaConf.to_container(cfg, resolve=True), allow_val_change=True
-            )
+    # ─────────── callbacks ───────────
+    callbacks = [instantiate(cb) for cb in cfg.experiment.callbacks.values()]
+    ckpt_cb = next((cb for cb in callbacks if isinstance(cb, ModelCheckpoint)), None)
 
-        # Instantiate callbacks từ config
-        callbacks = [instantiate(cb) for cb in cfg.experiment.callbacks.values()]
-        # Tìm checkpoint callback trong list callback
-        checkpoint_callback = next(
-            (cb for cb in callbacks if isinstance(cb, ModelCheckpoint)), None
-        )
-        # early_stopping_callback = next(
-        #     (cb for cb in callbacks if isinstance(cb, pl.callbacks.EarlyStopping)), None
-        # )
-        # Nếu có checkpoint callback thì chỉnh đường dẫn và metric monitor
-        if checkpoint_callback:
-            checkpoint_callback.dirpath = os.path.join(
-                checkpoint_callback.dirpath, f"fold_{fold}"
-            )
-            checkpoint_callback.monitor = f"val/fold_{fold}/macro/f1"
-        # Nếu có early stopping callback thì chỉnh monitor
-        # if early_stopping_callback:
-        #     early_stopping_callback.monitor = f"val/fold_{fold}/macro/f1"
+    # cập nhật chỉ số monitor
+    if ckpt_cb:
+        ckpt_cb.monitor = "val/macro/f1"  # <── NEW monitor
+        ckpt_cb.dirpath = os.path.join(ckpt_cb.dirpath, "run_0")
 
-        trainer = pl.Trainer(
-            **cfg.experiment.trainer,
-            logger=logger,
-            callbacks=[checkpoint_callback],
-            enable_progress_bar=True,
-        )
-        # Train the model
-        trainer.fit(model, data)
-        best_models.append(trainer.checkpoint_callback.best_model_path)
-        best_scores.append(trainer.checkpoint_callback.best_model_score.item())
+    # ─────────── trainer ───────────
+    trainer = pl.Trainer(
+        **cfg.experiment.trainer,
+        logger=logger,
+        callbacks=callbacks,
+        enable_progress_bar=True,
+    )
 
+    # ─────────── train ───────────
+    trainer.fit(model, datamodule=datamodule)
+    trainer.test(model, datamodule=datamodule)
+
+    # ─────────── lấy checkpoint tốt nhất ───────────
+    best_model_path = ckpt_cb.best_model_path
+    best_score = ckpt_cb.best_model_score.item()
+    pprint(f"Best model path: {best_model_path}")
+    pprint(f"Best val f1:     {best_score:.4f}")
+
+    # ─────────── test (log CM & ROC) ───────────
+
+    # ─────────── kết thúc wandb & lưu lên Drive ───────────
     wandb.finish()
-    best_model = best_models[best_scores.index(max(best_scores))]
-
-    pprint(f"Best model path: {best_model}")
-    save_and_push_best_model(best_model_path=best_model)
+    save_and_push_best_model(best_model_path)
 
 
 if __name__ == "__main__":

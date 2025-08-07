@@ -13,7 +13,6 @@ model:
   _target_: src.experiment.base_module.BaseModule
   encoder: ${experiment.encoder}
   loss: ${experiment.loss}
-  fold_id: ${experiment.datamodule.current_fold}
 
 name: baseline
 

@@ -1,5 +1,6 @@
 from collections import defaultdict
 
+import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
 from pytorch_lightning.loggers import WandbLogger
@@ -17,158 +18,149 @@ from torchmetrics.classification import (
 
 import wandb
 
+matplotlib.use("Agg")  # Use non-interactive backend for plotting
+
 
 class MetricsManager(Module):
-    def __init__(self, num_classes, fold_id=0):
+    """
+    Gom tất cả metric; cho phép log macro & per-class.
+    Tham số:
+        • num_classes : số lớp phân loại
+    """
+
+    def __init__(self, num_classes: int):
         super().__init__()
         self.num_classes = num_classes
-        self.fold_id = fold_id
 
-        # Metrics
+        # ────────── định nghĩa metric ──────────
         self.metrics = ModuleDict(
             {
-                'val_accuracy': Accuracy(
+                "accuracy": Accuracy(
                     task="multiclass", num_classes=num_classes, average="macro"
                 ),
-                'val_precision': Precision(
+                "precision": Precision(
                     task="multiclass", num_classes=num_classes, average="macro"
                 ),
-                'val_precision_pc': Precision(
+                "precision_pc": Precision(
                     task="multiclass", num_classes=num_classes, average=None
                 ),
-                'val_recall': Recall(
+                "recall": Recall(
                     task="multiclass", num_classes=num_classes, average="macro"
                 ),
-                'val_recall_pc': Recall(
+                "recall_pc": Recall(
                     task="multiclass", num_classes=num_classes, average=None
                 ),
-                'val_f1': F1Score(
+                "f1": F1Score(
                     task="multiclass", num_classes=num_classes, average="macro"
                 ),
-                'val_f1_pc': F1Score(
+                "f1_pc": F1Score(
                     task="multiclass", num_classes=num_classes, average=None
                 ),
-                'val_specificity': Specificity(
+                "specificity": Specificity(
                     task="multiclass", num_classes=num_classes, average="macro"
                 ),
-                'val_specificity_pc': Specificity(
+                "specificity_pc": Specificity(
                     task="multiclass", num_classes=num_classes, average=None
                 ),
-                'val_auroc': AUROC(
+                "auroc": AUROC(
                     task="multiclass", num_classes=num_classes, average="macro"
                 ),
-                'val_auroc_pc': AUROC(
+                "auroc_pc": AUROC(
                     task="multiclass", num_classes=num_classes, average=None
                 ),
-                'val_roc': MulticlassROC(num_classes=num_classes),
-                'val_confusion_matrix': MulticlassConfusionMatrix(
-                    num_classes=num_classes
-                ),
+                "roc": MulticlassROC(num_classes=num_classes),
+                "conf_matrix": MulticlassConfusionMatrix(num_classes=num_classes),
             }
         )
 
-        self.val_loss_epoch = []
-        self.fold_results = defaultdict(list)
+        self.fold_results = defaultdict(list)  # dùng nếu muốn khái quát nhiều lần train
 
-    def update(self, preds, probs, y):
-        self.metrics.val_accuracy.update(preds, y)
-        self.metrics.val_precision.update(preds, y)
-        self.metrics.val_precision_pc.update(preds, y)
-        self.metrics.val_recall.update(preds, y)
-        self.metrics.val_recall_pc.update(preds, y)
-        self.metrics.val_f1.update(preds, y)
-        self.metrics.val_f1_pc.update(preds, y)
-        self.metrics.val_specificity.update(preds, y)
-        self.metrics.val_specificity_pc.update(preds, y)
-        self.metrics.val_auroc.update(probs, y)
-        self.metrics.val_auroc_pc.update(probs, y)
-        self.metrics.val_roc.update(probs, y)
-        self.metrics.val_confusion_matrix.update(preds, y)
+    # ───────────────────────── update ─────────────────────────
+    def update(self, preds, probs, targets):
+        m = self.metrics
+        m.accuracy.update(preds, targets)
+        m.precision.update(preds, targets)
+        m.precision_pc.update(preds, targets)
+        m.recall.update(preds, targets)
+        m.recall_pc.update(preds, targets)
+        m.f1.update(preds, targets)
+        m.f1_pc.update(preds, targets)
+        m.specificity.update(preds, targets)
+        m.specificity_pc.update(preds, targets)
+        m.auroc.update(probs, targets)
+        m.auroc_pc.update(probs, targets)
+        m.roc.update(probs, targets)
+        m.conf_matrix.update(preds, targets)
 
-    def compute(self):
-        """Compute macro metrics (dùng cho self.log trong Lightning)."""
+    # ───────────────────────── compute ────────────────────────
+    def _macro_dict(self):
+        m = self.metrics
         return {
-            "accuracy": self.metrics.val_accuracy.compute().cpu().item(),
-            "precision": self.metrics.val_precision.compute().cpu().item(),
-            "recall": self.metrics.val_recall.compute().cpu().item(),
-            "f1": self.metrics.val_f1.compute().cpu().item(),
-            "specificity": self.metrics.val_specificity.compute().cpu().item(),
-            "auroc": self.metrics.val_auroc.compute().cpu().item(),
+            "accuracy": m.accuracy.compute().cpu().item(),
+            "precision": m.precision.compute().cpu().item(),
+            "recall": m.recall.compute().cpu().item(),
+            "f1": m.f1.compute().cpu().item(),
+            "specificity": m.specificity.compute().cpu().item(),
+            "auroc": m.auroc.compute().cpu().item(),
         }
 
-    def compute_and_log(self, logger, epoch, log_fn=None):
-        # Macro metrics
-        macro_metrics = self.compute()
+    # ─────────── compute & log (val / test) ───────────
+    def compute_and_log(
+        self,
+        logger: WandbLogger | None,
+        epoch: int,
+        phase: str = "val",
+        log_fn=None,
+        include_plots: bool = False,
+    ):
+        """
+        phase : 'val' hoặc 'test'
+        include_plots : True => log ROC & Confusion-Matrix
+        """
+        macro = self._macro_dict()
 
-        # Per-class metrics
-        prec_pc = self.metrics.val_precision_pc.compute().cpu().tolist()
-        rec_pc = self.metrics.val_recall_pc.compute().cpu().tolist()
-        f1_pc = self.metrics.val_f1_pc.compute().cpu().tolist()
-        spec_pc = self.metrics.val_specificity_pc.compute().cpu().tolist()
-        auroc_pc = self.metrics.val_auroc_pc.compute().cpu().tolist()
+        # per-class list
+        prec_pc = self.metrics.precision_pc.compute().cpu().tolist()
+        rec_pc = self.metrics.recall_pc.compute().cpu().tolist()
+        f1_pc = self.metrics.f1_pc.compute().cpu().tolist()
+        spec_pc = self.metrics.specificity_pc.compute().cpu().tolist()
+        auc_pc = self.metrics.auroc_pc.compute().cpu().tolist()
 
-        # Save fold metrics
-        for k, v in macro_metrics.items():
-            self.fold_results[f"{k}_macro"].append(v)
-
-        for i in range(self.num_classes):
-            self.fold_results[f"precision_pc_{i}"].append(prec_pc[i])
-            self.fold_results[f"recall_pc_{i}"].append(rec_pc[i])
-            self.fold_results[f"f1_pc_{i}"].append(f1_pc[i])
-            self.fold_results[f"specificity_pc_{i}"].append(spec_pc[i])
-            self.fold_results[f"auroc_pc_{i}"].append(auroc_pc[i])
-
-        # Log metrics bằng Lightning self.log
+        # ─── log bằng Lightning self.log ───
         if log_fn:
-            for k, v in macro_metrics.items():
-                log_fn(
-                    f"val/fold_{self.fold_id}/macro/{k}",
-                    v,
-                    prog_bar=(k == "f1"),
-                    on_epoch=True,
-                )
+            for k, v in macro.items():
+                log_fn(f"{phase}/macro/{k}", v, prog_bar=(k == "f1"), on_epoch=True)
 
-        # Log metrics vào Wandb
+        # ─── log vào wandb ───
         if logger:
-            logger.log_metrics(
-                {
-                    f"val/fold_{self.fold_id}/macro/{k}": v
-                    for k, v in macro_metrics.items()
-                }
-            )
-
+            # macro
+            logger.log_metrics({f"{phase}/macro/{k}": v for k, v in macro.items()})
+            # per-class
             for i in range(self.num_classes):
                 logger.log_metrics(
                     {
-                        f"val/fold_{self.fold_id}/per_class/precision_{i}": float(
-                            prec_pc[i]
-                        ),
-                        f"val/fold_{self.fold_id}/per_class/recall_{i}": float(
-                            rec_pc[i]
-                        ),
-                        f"val/fold_{self.fold_id}/per_class/f1_{i}": float(f1_pc[i]),
-                        f"val/fold_{self.fold_id}/per_class/specificity_{i}": float(
-                            spec_pc[i]
-                        ),
-                        f"val/fold_{self.fold_id}/per_class/auroc_{i}": float(
-                            auroc_pc[i]
-                        ),
+                        f"{phase}/per_class/precision_{i}": float(prec_pc[i]),
+                        f"{phase}/per_class/recall_{i}": float(rec_pc[i]),
+                        f"{phase}/per_class/f1_{i}": float(f1_pc[i]),
+                        f"{phase}/per_class/specificity_{i}": float(spec_pc[i]),
+                        f"{phase}/per_class/auroc_{i}": float(auc_pc[i]),
                     }
                 )
 
-        # Confusion matrix
-        self._log_confusion_matrix(logger, epoch)
-        # ROC curve
-        self._log_roc_curve(logger, auroc_pc, epoch)
+        # ─── Chỉ vẽ hình ở test ───
+        if include_plots and logger:
+            self._log_confusion_matrix(logger, epoch, phase)
+            self._log_roc_curve(logger, epoch, phase, auc_pc)
 
         self.reset()
 
-    def _log_confusion_matrix(self, logger, epoch):
-        cm = self.metrics.val_confusion_matrix.compute().cpu().numpy()
-        fig_cm = plt.figure(figsize=(6, 5))
+    # ───────────────────────── plots ─────────────────────────
+    def _log_confusion_matrix(self, logger, epoch, phase):
+        cm = self.metrics.conf_matrix.compute().cpu().numpy()
+        fig = plt.figure(figsize=(6, 5))
         ax = plt.gca()
         im = ax.imshow(cm, interpolation="nearest")
-        plt.title(f"Confusion Matrix (epoch {epoch})")
+        plt.title(f"Confusion Matrix ({phase}, epoch {epoch})")
         plt.colorbar(im, fraction=0.046, pad=0.04)
         ax.set_xlabel("Predicted")
         ax.set_ylabel("True")
@@ -188,60 +180,32 @@ class MetricsManager(Module):
                     fontsize=8,
                 )
         plt.tight_layout()
+        logger.experiment.log(
+            {f"{phase}/confusion_matrix": wandb.Image(fig)}, commit=False
+        )
+        plt.close(fig)
 
-        if isinstance(logger, WandbLogger):
-            logger.experiment.log(
-                {f"val/fold_{self.fold_id}/confusion_matrix": wandb.Image(fig_cm)},
-                commit=False,
-            )
-        plt.close(fig_cm)
-
-    def _log_roc_curve(self, logger, auroc_pc, epoch):
-        fprs, tprs, _ = self.metrics.val_roc.compute()
+    def _log_roc_curve(self, logger, epoch, phase, auc_pc):
+        fprs, tprs, _ = self.metrics.roc.compute()
         fprs = [f.cpu().numpy() for f in fprs]
         tprs = [t.cpu().numpy() for t in tprs]
 
-        fig_roc = plt.figure(figsize=(6, 5))
+        fig = plt.figure(figsize=(6, 5))
         for i in range(self.num_classes):
-            plt.plot(fprs[i], tprs[i], label=f"Class {i} (AUC={auroc_pc[i]:.3f})")
+            plt.plot(fprs[i], tprs[i], label=f"Class {i} (AUC={auc_pc[i]:.3f})")
         plt.plot([0, 1], [0, 1], linestyle="--")
-        plt.xlim([0.0, 1.0])
-        plt.ylim([0.0, 1.05])
+        plt.xlim([0, 1])
+        plt.ylim([0, 1.05])
         plt.xlabel("False Positive Rate")
         plt.ylabel("True Positive Rate")
-        plt.title(f"ROC Curves (epoch {epoch})")
+        plt.title(f"ROC Curves ({phase}, epoch {epoch})")
         plt.legend(loc="lower right", fontsize=8)
         plt.tight_layout()
 
-        if isinstance(logger, WandbLogger):
-            logger.experiment.log(
-                {f"val/fold_{self.fold_id}/roc_curves": wandb.Image(fig_roc)},
-                commit=True,
-            )
-        plt.close(fig_roc)
+        logger.experiment.log({f"{phase}/roc_curves": wandb.Image(fig)}, commit=True)
+        plt.close(fig)
 
-    def log_all_folds_summary(self, logger):
-        """Log mean ± std for all folds"""
-        if logger:
-            for key, values in self.fold_results.items():
-                mean_val = np.mean(values)
-                std_val = np.std(values)
-                if "pc" in key:
-                    logger.log_metrics(
-                        {
-                            f"val/all_folds/per_class/{key}_mean": mean_val,
-                            f"val/all_folds/per_class/{key}_std": std_val,
-                        }
-                    )
-                else:
-                    logger.log_metrics(
-                        {
-                            f"val/all_folds/macro/{key}_mean": mean_val,
-                            f"val/all_folds/macro/{key}_std": std_val,
-                        }
-                    )
-
+    # ───────────────────────── reset ─────────────────────────
     def reset(self):
-        for metric in self.metrics.values():
-            metric.reset()
-        self.val_loss_epoch.clear()
+        for m in self.metrics.values():
+            m.reset()

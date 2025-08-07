@@ -1,15 +1,15 @@
 checkpoint:
   _target_: pytorch_lightning.callbacks.ModelCheckpoint
   dirpath: outputs/checkpoints
-  filename: ${user}_${experiment.name}_${experiment.encoder.model_name}_${experiment.datamodule.current_fold}_${now:%Y%m%d_%H%M%S}
-  monitor: val/f1
+  filename: ${user}_${experiment.name}_${experiment.encoder.model_name}_${now:%Y%m%d_%H%M%S}
+  monitor: val/macro/f1
   mode: max
   save_top_k: 1
   save_weights_only: true
   verbose: true
-early_stop:
-  _target_: pytorch_lightning.callbacks.EarlyStopping
-  monitor: val/loss
-  mode: min
-  patience: 5
-  verbose: true
+# early_stop:
+#   _target_: pytorch_lightning.callbacks.EarlyStopping
+#   monitor: val/loss
+#   mode: min
+#   patience: 5
+#   verbose: true
