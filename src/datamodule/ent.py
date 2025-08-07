@@ -56,12 +56,7 @@ class SplitENTDataModule(LightningDataModule):
         transform = transforms.Compose(
             [
                 transforms.Resize((self.image_size, self.image_size)),
-                transforms.RandomHorizontalFlip(),
-                transforms.RandomVerticalFlip(),
-                transforms.RandomRotation(10),
-                transforms.ColorJitter(
-                    brightness=0.2, contrast=0.2, saturation=0.2, hue=0.1
-                ),
+                transforms.RandAugment(num_ops=3, magnitude=7),
                 transforms.ToTensor(),
             ]
         )
