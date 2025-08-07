@@ -1,0 +1,4 @@
+_target_: timm.create_model
+model_name: convit_small.fb_in1k
+pretrained: true
+num_classes: 12
