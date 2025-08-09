@@ -13,6 +13,7 @@ model:
   _target_: src.experiment.base_module.BaseModule
   encoder: ${experiment.encoder}
   loss: ${experiment.loss}
+  max_epochs: ${experiment.trainer.max_epochs}
 
 name: baseline
 

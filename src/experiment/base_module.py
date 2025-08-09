@@ -1,5 +1,6 @@
 import pytorch_lightning as pl
 import torch
+from torch.optim.lr_scheduler import CosineAnnealingLR, LinearLR, SequentialLR
 
 from src.utils.metrics import MetricsManager
 
@@ -10,12 +11,13 @@ class BaseModule(pl.LightningModule):
     • Chỉ vẽ Confusion-Matrix & ROC ở phase test.
     """
 
-    def __init__(self, encoder, loss, num_classes: int = 12):
+    def __init__(self, encoder, loss, num_classes: int = 12, max_epochs: int = 100):
         super().__init__()
         self.save_hyperparameters(ignore=["encoder", "loss"])
         self.encoder = encoder
         self.loss_fn = loss
         self.metrics = MetricsManager(num_classes=num_classes)
+        self.max_epochs = max_epochs
 
         self.train_losses, self.val_losses = [], []
 
@@ -88,4 +90,14 @@ class BaseModule(pl.LightningModule):
 
     # ──────────────────────────── optimizer ──────────────────────────────
     def configure_optimizers(self):
-        return torch.optim.Adam(self.parameters(), lr=1e-3)
+        opt = torch.optim.AdamW(self.parameters(), lr=1e-3, weight_decay=1e-2)
+        warmup = LinearLR(opt, start_factor=0.1, total_iters=10)
+        cosine = CosineAnnealingLR(opt, T_max=self.max_epochs - 10, eta_min=1e-6)
+        scheduler = SequentialLR(opt, schedulers=[warmup, cosine], milestones=[10])
+        return {
+            "optimizer": opt,
+            "lr_scheduler": {
+                "scheduler": scheduler,
+                "interval": "epoch",
+            },
+        }
