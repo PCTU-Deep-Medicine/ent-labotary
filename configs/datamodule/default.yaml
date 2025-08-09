@@ -1,7 +1,7 @@
 _target_: src.datamodule.ent.SplitENTDataModule
 csv_file: data/data-filter.csv
 image_dir: data/data-filter
-batch_size: 64
+batch_size: 32
 num_workers: 4
 image_size: 224
 val_ratio: 0.15
