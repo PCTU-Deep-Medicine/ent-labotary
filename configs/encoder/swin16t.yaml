@@ -1,0 +1,5 @@
+_target_: timm.create_model
+model_name: swin_s3_tiny_224.ms_in1k
+pretrained: true
+num_classes: 12
+in_chans: 3 # Test for mnist
