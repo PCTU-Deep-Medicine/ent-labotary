@@ -4,13 +4,13 @@ import pandas as pd
 from PIL import Image
 from pytorch_lightning import LightningDataModule
 from sklearn.model_selection import train_test_split
-from torch.utils.data import DataLoader, Dataset, Subset
+from torch.utils.data import DataLoader, Dataset
 from torchvision import transforms
 
 
 class EntDataset(Dataset):
     def __init__(self, dataframe, image_dir, transform=None):
-        self.dataframe = dataframe
+        self.dataframe = dataframe.reset_index(drop=True)
         self.image_dir = image_dir
         self.transform = transform
 
@@ -49,27 +49,30 @@ class SplitENTDataModule(LightningDataModule):
         self.test_ratio = test_ratio
         self.seed = seed
 
-    def setup(self, stage=None):
-        df = pd.read_csv(self.csv_file)
-        assert {'filename', 'label_type', 'label'}.issubset(df.columns)
+    def _build_transforms(self):
 
-        transform = transforms.Compose(
+        train_tf = transforms.Compose(
             [
                 transforms.Resize((self.image_size, self.image_size)),
                 transforms.RandAugment(num_ops=3, magnitude=7),
                 transforms.ToTensor(),
             ]
         )
-
-        dataset = EntDataset(
-            dataframe=df, image_dir=self.image_dir, transform=transform
+        eval_tf = transforms.Compose(
+            [
+                transforms.Resize((self.image_size, self.image_size)),
+                transforms.ToTensor(),
+            ]
         )
+        return train_tf, eval_tf
+
+    def setup(self, stage=None):
+        df = pd.read_csv(self.csv_file)
+        assert {'filename', 'label_type', 'label'}.issubset(df.columns)
 
         # Tính tỉ lệ cho từng phần
         test_size = self.test_ratio
-        val_size = self.val_ratio / (
-            1 - test_size
-        )  # điều chỉnh val để chia tiếp trong train ban đầu
+        val_size = self.val_ratio / (1 - test_size)
 
         train_val_idx, test_idx = train_test_split(
             df.index,
@@ -77,7 +80,6 @@ class SplitENTDataModule(LightningDataModule):
             stratify=df['label'],
             random_state=self.seed,
         )
-
         train_idx, val_idx = train_test_split(
             train_val_idx,
             test_size=val_size,
@@ -85,9 +87,18 @@ class SplitENTDataModule(LightningDataModule):
             random_state=self.seed,
         )
 
-        self.train_dataset = Subset(dataset, train_idx)
-        self.val_dataset = Subset(dataset, val_idx)
-        self.test_dataset = Subset(dataset, test_idx)
+        train_tf, eval_tf = self._build_transforms()
+
+        # Tạo 3 dataset riêng với transform riêng
+        self.train_dataset = EntDataset(
+            dataframe=df.loc[train_idx], image_dir=self.image_dir, transform=train_tf
+        )
+        self.val_dataset = EntDataset(
+            dataframe=df.loc[val_idx], image_dir=self.image_dir, transform=eval_tf
+        )
+        self.test_dataset = EntDataset(
+            dataframe=df.loc[test_idx], image_dir=self.image_dir, transform=eval_tf
+        )
 
     def train_dataloader(self):
         return DataLoader(
@@ -95,6 +106,7 @@ class SplitENTDataModule(LightningDataModule):
             batch_size=self.batch_size,
             shuffle=True,
             num_workers=self.num_workers,
+            pin_memory=True,
         )
 
     def val_dataloader(self):
@@ -103,6 +115,7 @@ class SplitENTDataModule(LightningDataModule):
             batch_size=self.batch_size,
             shuffle=False,
             num_workers=self.num_workers,
+            pin_memory=True,
         )
 
     def test_dataloader(self):
@@ -111,4 +124,5 @@ class SplitENTDataModule(LightningDataModule):
             batch_size=self.batch_size,
             shuffle=False,
             num_workers=self.num_workers,
+            pin_memory=True,
         )
