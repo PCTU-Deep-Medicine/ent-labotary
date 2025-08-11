@@ -25,3 +25,4 @@ dotenv
 dvc
 pre-commit
 gdown
+lightly_train
