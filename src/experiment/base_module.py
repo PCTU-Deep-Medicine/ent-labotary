@@ -31,12 +31,7 @@ class BaseModule(pl.LightningModule):
 
     # ────────────────────────────── forward ──────────────────────────────
     def forward(self, x):
-        """
-        Forward pass through the encoder and head.
-        """
-        x = self.encoder(x)
-        x = self.head(x)
-        return x
+        return self.encoder(x)
 
     # ─────────────────────────────── train ───────────────────────────────
     def training_step(self, batch, batch_idx):
