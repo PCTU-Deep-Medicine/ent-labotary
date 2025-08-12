@@ -1,5 +1,6 @@
 import pytorch_lightning as pl
 import torch
+import torch.nn as nn
 from torch.optim.lr_scheduler import CosineAnnealingLR, LinearLR, SequentialLR
 
 from src.utils.metrics import MetricsManager
@@ -19,11 +20,24 @@ class BaseModule(pl.LightningModule):
         self.metrics = MetricsManager(num_classes=num_classes)
         self.max_epochs = max_epochs
 
+        # head mới cho 12 lớp
+        feat_dim = getattr(self.encoder, "num_features", None)
+        if feat_dim is None:
+            x = torch.zeros(1, 3, 224, 224)
+            with torch.no_grad():
+                feat_dim = self.encoder(x).shape[-1]
+        self.head = nn.Linear(feat_dim, num_classes)
+
         self.train_losses, self.val_losses = [], []
 
     # ────────────────────────────── forward ──────────────────────────────
     def forward(self, x):
-        return self.encoder(x)
+        """
+        Forward pass through the encoder and head.
+        """
+        x = self.encoder(x)
+        x = self.head(x)
+        return x
 
     # ─────────────────────────────── train ───────────────────────────────
     def training_step(self, batch, batch_idx):

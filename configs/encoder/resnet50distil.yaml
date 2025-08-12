@@ -1,5 +1,4 @@
 _target_: timm.create_model
 model_name: resnet50
+pretrained: false
 checkpoint_path: outputs/ssl_disil/resnet50_distil.pt
-num_classes: 12
-in_chans: 3 # Test for mnist
