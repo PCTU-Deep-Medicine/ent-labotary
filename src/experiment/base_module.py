@@ -20,14 +20,13 @@ class BaseModule(pl.LightningModule):
         self.metrics = MetricsManager(num_classes=num_classes)
         self.max_epochs = max_epochs
 
-        # head mới cho 12 lớp
-        feat_dim = getattr(self.encoder, "num_features", None)
-        if feat_dim is None:
-            x = torch.zeros(1, 3, 224, 224)
-            with torch.no_grad():
-                feat_dim = self.encoder(x).shape[-1]
-        self.head = nn.Linear(feat_dim, num_classes)
+        feature_dim = self.encoder.get_classifier().in_features
+        self.encoder.reset_classifier(0)  # reset classifier to get feature dimension
 
+        if hasattr(self.encoder, "head"):
+            self.encoder.head = nn.Linear(feature_dim, num_classes)
+        elif hasattr(self.encoder, "fc"):
+            self.encoder.fc = nn.Linear(feature_dim, num_classes)
         self.train_losses, self.val_losses = [], []
 
     # ────────────────────────────── forward ──────────────────────────────
