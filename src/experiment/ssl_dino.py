@@ -6,7 +6,7 @@ if __name__ == "__main__":
         "vit_small_patch16_224", pretrained=True
     )  # Load the model.
     lightly_train.train(
-        out="outputs/ssl_dino",  # Output directory.
+        out="outputs/ssl_dino/vit16s",  # Output directory.
         data="data/kyucapsule",  # Directory with images.
         model=model,  # Pass the TIMM model.
         method="dino",  # Use DINO method.
@@ -14,13 +14,16 @@ if __name__ == "__main__":
         batch_size=32,
         transform_args={
             "image_size": (224, 224),
+            "local_view": {
+                "view_size": (224, 224),
+            },
         },
         loggers={"wandb": {"project": "ent-endoscopy-ssl"}},
     )
 
     lightly_train.export(
-        out="outputs/ssl_dino/vit_small_patch16_224_dino.pt",
-        checkpoint="outputs/ssl_dino/checkpoints/last.ckpt",
+        out="outputs/ssl_dino/vit16s/vit_small_patch16_224_dino.pt",
+        checkpoint="outputs/ssl_dino/vit16s/checkpoints/last.ckpt",
         part="model",
         format="torch_state_dict",
     )
