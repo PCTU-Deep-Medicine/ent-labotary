@@ -16,7 +16,7 @@ if __name__ == "__main__":
         transform_args={
             "image_size": (224, 224),
         },
-        # loggers={"wandb": {"project": "ent-endoscopy-ssl"}},
+        loggers={"wandb": {"project": "ent-endoscopy-ssl"}},
         overwrite=True,  # Overwrite existing outputs.
     )
 
