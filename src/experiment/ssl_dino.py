@@ -3,7 +3,7 @@ import timm
 
 if __name__ == "__main__":
     model = timm.create_model(
-        "vit_small_patch16_224", pretrained=True
+        "vit_small_patch16_224.augreg_in21k", pretrained=True
     )  # Load the model.
     lightly_train.train(
         out="outputs/ssl_dino/vit16s",  # Output directory.
@@ -12,13 +12,12 @@ if __name__ == "__main__":
         method="dino",  # Use DINO method.
         epochs=300,
         batch_size=32,
+        model_args={"dynamic_img_size": True},
         transform_args={
             "image_size": (224, 224),
-            "local_view": {
-                "view_size": (224, 224),
-            },
         },
         loggers={"wandb": {"project": "ent-endoscopy-ssl"}},
+        overwrite=True,  # Overwrite existing outputs.
     )
 
     lightly_train.export(
