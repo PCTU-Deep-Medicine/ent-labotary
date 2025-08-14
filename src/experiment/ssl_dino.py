@@ -1,7 +1,14 @@
+import os
+import sys
+
 import lightly_train
 import timm
 
-from src.utils.upload_ckpt import upload_checkpoint
+sys.path.append(
+    os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+)  # noqa: E402
+
+from utils.upload_ckpt import upload_checkpoint  # noqa: E402
 
 if __name__ == "__main__":
     model = timm.create_model(
@@ -19,6 +26,7 @@ if __name__ == "__main__":
             "image_size": (224, 224),
         },
         loggers={"wandb": {"project": "ent-endoscopy-ssl"}},
+        resume=True,
         overwrite=True,  # Overwrite existing outputs.
     )
 
@@ -29,4 +37,4 @@ if __name__ == "__main__":
         format="torch_state_dict",
     )
 
-    upload_checkpoint(repo_id="coung21/ent", folder_path="/outputs")
+    upload_checkpoint(repo_id="coung21/ent", folder_path="outputs")

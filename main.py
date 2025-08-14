@@ -66,7 +66,7 @@ def main(cfg: DictConfig) -> None:
     # ─────────── kết thúc wandb & lưu lên Drive ───────────
     wandb.finish()
     save_and_push_best_model(best_model_path)
-    upload_checkpoint(repo_id="coung21/ent", folder_path="/outputs")
+    upload_checkpoint(repo_id="coung21/ent", folder_path="outputs")
 
 
 if __name__ == "__main__":
