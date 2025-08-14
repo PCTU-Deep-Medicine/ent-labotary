@@ -26,3 +26,4 @@ dvc
 pre-commit
 gdown
 lightly_train
+huggingface-hub

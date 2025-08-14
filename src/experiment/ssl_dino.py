@@ -1,6 +1,8 @@
 import lightly_train
 import timm
 
+from src.utils.upload_ckpt import upload_checkpoint
+
 if __name__ == "__main__":
     model = timm.create_model(
         "vit_small_patch16_224.augreg_in21k", pretrained=True, dynamic_img_size=True
@@ -26,3 +28,5 @@ if __name__ == "__main__":
         part="model",
         format="torch_state_dict",
     )
+
+    upload_checkpoint(repo_id="coung21/ent", folder_path="/outputs")
