@@ -25,5 +25,5 @@ dotenv
 dvc
 pre-commit
 gdown
-lightly_train
+lightly_train==0.11.0
 huggingface-hub
