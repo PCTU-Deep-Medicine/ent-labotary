@@ -38,7 +38,7 @@ if __name__ == "__main__":
             "teacher_url": os.environ.get("DINOV3_TEACHER_URL", "default_value"),
         },
         loggers={"wandb": {"project": "ent-endoscopy-ssl"}},
-        num_workers=64,
+        num_workers=16,
         resume_interrupted=True,
         overwrite=True,  # Overwrite existing outputs.
     )
