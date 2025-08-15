@@ -13,7 +13,7 @@ from utils.upload_ckpt import upload_checkpoint  # noqa: E402
 
 if __name__ == "__main__":
     model = timm.create_model(
-        "timm/swin_tiny_patch4_window7_224.ms_in22k",
+        "swin_s3_tiny_224.ms_in1k",
         pretrained=True,
         dynamic_img_size=True,
     )  # Load the model.
