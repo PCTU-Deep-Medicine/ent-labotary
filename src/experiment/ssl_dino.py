@@ -32,6 +32,7 @@ if __name__ == "__main__":
             "local_view": {"num_views": 0},  # <-- TẮT LOCAL CROPS
         },
         loggers={"wandb": {"project": "ent-endoscopy-ssl"}},
+        num_workers=1,
         resume=True,
         overwrite=True,  # Overwrite existing outputs.
     )
