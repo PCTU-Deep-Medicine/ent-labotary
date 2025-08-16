@@ -1,0 +1,5 @@
+_target_: timm.create_model
+model_name: vit_small_patch16_224.augreg_in21k
+pretrained: false
+checkpoint_path: outputs/ssl_distil/vit16s/vit16s_patch16_224_distil.pth
+# hf download coung21/ent ssl_distil/vit16s/vit16s_patch16_224_distil.pth --local-dir ./outputs
