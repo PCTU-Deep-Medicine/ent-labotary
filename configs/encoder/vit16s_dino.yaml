@@ -1,4 +1,5 @@
 _target_: timm.create_model
-model_name: vit_small_patch16_224.augreg_in21k
-pretrained: false
-checkpoint_path: outputs/ssl_dino/vit16s/vit_small_patch16_224_dino.pt
+model_name: vit_small_patch14_dinov2.lvd142m
+pretrained: true
+num_classes: 1000
+dynamic_img_size: true
