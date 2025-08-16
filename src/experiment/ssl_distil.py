@@ -14,20 +14,20 @@ from utils.upload_ckpt import upload_checkpoint  # noqa: E402
 
 if __name__ == "__main__":
     model = timm.create_model(
-        "vit_small_patch16_224.augreg_in21k",
+        "resnet50",
         pretrained=True,
-        dynamic_img_size=True,
+        # dynamic_img_size=True,
     )  # Load the model.
 
     # if isinstance(getattr(model, "global_pool", None), str):
     #     model.global_pool = nn.AdaptiveAvgPool2d(1)  # giờ _pool sẽ callable
     lightly_train.train(
-        out="outputs/ssl_distil/vit16s",  # Output directory.
+        out="outputs/ssl_distil/resnet50",  # Output directory.
         data="data/kyucapsule",  # Directory with images.
         model=model,  # Pass theH", "d TIMM model.
         method="distillation",  # Use DINO method.
         epochs=300,
-        batch_size=32,
+        batch_size=64,
         transform_args={
             "image_size": (224, 224),
             # "local_view": {"num_views": 0},  # <-- TẮT LOCAL CROPS
@@ -44,8 +44,8 @@ if __name__ == "__main__":
     )
 
     lightly_train.export(
-        out="outputs/ssl_distil/vit16s/vit16s_patch16_224_distil.pth",
-        checkpoint="outputs/ssl_distil/vit16s/checkpoints/last.ckpt",
+        out="outputs/ssl_distil/resnet50/resnet50_distil.pth",
+        checkpoint="outputs/ssl_distil/resnet50/checkpoints/last.ckpt",
         part="model",
         format="torch_state_dict",
     )
