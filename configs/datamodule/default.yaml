@@ -1,9 +1,5 @@
-_target_: src.datamodule.ent.SplitENTDataModule
-csv_file: data/data-filter.csv
-image_dir: data/data-filter
+_target_: src.datamodule.ent.ENTDataModule
+split_root: data/12endo
 batch_size: 32
 num_workers: 4
 image_size: 224
-val_ratio: 0.15
-test_ratio: 0.15
-seed: 42

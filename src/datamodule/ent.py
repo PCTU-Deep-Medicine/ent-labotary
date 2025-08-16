@@ -1,56 +1,37 @@
 import os
+from typing import Dict, Optional
 
-import pandas as pd
-from PIL import Image
 from pytorch_lightning import LightningDataModule
-from sklearn.model_selection import train_test_split
-from torch.utils.data import DataLoader, Dataset
-from torchvision import transforms
+from torch.utils.data import DataLoader
+from torchvision import datasets, transforms
 
 
-class EntDataset(Dataset):
-    def __init__(self, dataframe, image_dir, transform=None):
-        self.dataframe = dataframe.reset_index(drop=True)
-        self.image_dir = image_dir
-        self.transform = transform
-
-    def __len__(self):
-        return len(self.dataframe)
-
-    def __getitem__(self, idx):
-        row = self.dataframe.iloc[idx]
-        img_path = os.path.join(self.image_dir, row['filename'])
-        image = Image.open(img_path).convert("RGB")
-        label = int(row['label'])
-        if self.transform:
-            image = self.transform(image)
-        return image, label
-
-
-class SplitENTDataModule(LightningDataModule):
+class ENTDataModule(LightningDataModule):
     def __init__(
         self,
-        csv_file: str,
-        image_dir: str,
+        split_root: str,  # thư mục gốc sau tách: vd "data/12endo"
         batch_size: int = 64,
         num_workers: int = 4,
         image_size: int = 224,
-        val_ratio: float = 0.15,
-        test_ratio: float = 0.15,
-        seed: int = 42,
+        pin_memory: bool = True,
+        persistent_workers: bool = True,
     ):
         super().__init__()
-        self.csv_file = csv_file
-        self.image_dir = image_dir
+        self.split_root = split_root
         self.batch_size = batch_size
         self.num_workers = num_workers
         self.image_size = image_size
-        self.val_ratio = val_ratio
-        self.test_ratio = test_ratio
-        self.seed = seed
+        self.pin_memory = pin_memory
+        self.persistent_workers = persistent_workers
+
+        # sẽ được gán trong setup()
+        self.train_dataset = None
+        self.val_dataset = None
+        self.test_dataset = None
+        self.class_to_idx: Optional[Dict[str, int]] = None
+        self.num_classes: Optional[int] = None
 
     def _build_transforms(self):
-
         train_tf = transforms.Compose(
             [
                 transforms.Resize((self.image_size, self.image_size)),
@@ -67,46 +48,37 @@ class SplitENTDataModule(LightningDataModule):
         return train_tf, eval_tf
 
     def setup(self, stage=None):
-        df = pd.read_csv(self.csv_file)
-        assert {'filename', 'label_type', 'label'}.issubset(df.columns)
-
-        # Tính tỉ lệ cho từng phần
-        test_size = self.test_ratio
-        val_size = self.val_ratio / (1 - test_size)
-
-        train_val_idx, test_idx = train_test_split(
-            df.index,
-            test_size=test_size,
-            stratify=df['label'],
-            random_state=self.seed,
-        )
-        train_idx, val_idx = train_test_split(
-            train_val_idx,
-            test_size=val_size,
-            stratify=df.loc[train_val_idx, 'label'],
-            random_state=self.seed,
-        )
+        train_dir = os.path.join(self.split_root, "train")
+        val_dir = os.path.join(self.split_root, "val")
+        test_dir = os.path.join(self.split_root, "test")
 
         train_tf, eval_tf = self._build_transforms()
 
-        # Tạo 3 dataset riêng với transform riêng
-        self.train_dataset = EntDataset(
-            dataframe=df.loc[train_idx], image_dir=self.image_dir, transform=train_tf
-        )
-        self.val_dataset = EntDataset(
-            dataframe=df.loc[val_idx], image_dir=self.image_dir, transform=eval_tf
-        )
-        self.test_dataset = EntDataset(
-            dataframe=df.loc[test_idx], image_dir=self.image_dir, transform=eval_tf
-        )
+        # ImageFolder tự suy ra nhãn theo tên thư mục con
+        self.train_dataset = datasets.ImageFolder(train_dir, transform=train_tf)
+        self.val_dataset = datasets.ImageFolder(val_dir, transform=eval_tf)
+        self.test_dataset = datasets.ImageFolder(test_dir, transform=eval_tf)
+
+        # Lưu lại mapping và số lớp cho tiện truy cập ở model/LightningModule
+        self.class_to_idx = self.train_dataset.class_to_idx
+        self.num_classes = len(self.class_to_idx)
+
+        # Đảm bảo val/test dùng cùng mapping như train (thường OK nếu folder đồng nhất)
+        assert (
+            self.val_dataset.class_to_idx == self.class_to_idx
+        ), "class_to_idx của val khác train"
+        assert (
+            self.test_dataset.class_to_idx == self.class_to_idx
+        ), "class_to_idx của test khác train"
 
     def train_dataloader(self):
         return DataLoader(
             self.train_dataset,
             batch_size=self.batch_size,
-            shuffle=True,
+            shuffle=True,  # shuffle ở train
             num_workers=self.num_workers,
-            pin_memory=True,
+            pin_memory=self.pin_memory,
+            persistent_workers=self.persistent_workers and self.num_workers > 0,
         )
 
     def val_dataloader(self):
@@ -115,7 +87,8 @@ class SplitENTDataModule(LightningDataModule):
             batch_size=self.batch_size,
             shuffle=False,
             num_workers=self.num_workers,
-            pin_memory=True,
+            pin_memory=self.pin_memory,
+            persistent_workers=self.persistent_workers and self.num_workers > 0,
         )
 
     def test_dataloader(self):
@@ -124,5 +97,6 @@ class SplitENTDataModule(LightningDataModule):
             batch_size=self.batch_size,
             shuffle=False,
             num_workers=self.num_workers,
-            pin_memory=True,
+            pin_memory=self.pin_memory,
+            persistent_workers=self.persistent_workers and self.num_workers > 0,
         )

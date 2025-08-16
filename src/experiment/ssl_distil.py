@@ -23,7 +23,7 @@ if __name__ == "__main__":
     #     model.global_pool = nn.AdaptiveAvgPool2d(1)  # giờ _pool sẽ callable
     lightly_train.train(
         out="outputs/ssl_distil/resnet50",  # Output directory.
-        data="data/kyucapsule",  # Directory with images.
+        data="data/12endo/train",  # Directory with images.
         model=model,  # Pass theH", "d TIMM model.
         method="distillation",  # Use DINO method.
         epochs=300,
