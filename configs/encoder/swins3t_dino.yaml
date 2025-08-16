@@ -1,0 +1,4 @@
+_target_: timm.create_model
+model_name: swin_s3_tiny_224.ms_in1k
+pretrained: false
+checkpoint_path: outputs/ssl_dino/swin_tiny/swin_tiny_patch4_window7_224_dino.pt
