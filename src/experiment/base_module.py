@@ -1,7 +1,7 @@
 import pytorch_lightning as pl
 import torch
 import torch.nn as nn
-from torch.optim.lr_scheduler import LinearLR, SequentialLR
+from torch.optim.lr_scheduler import LinearLR, SequentialLR, StepLR
 
 from src.utils.metrics import MetricsManager
 
@@ -98,10 +98,10 @@ class BaseModule(pl.LightningModule):
 
     # ──────────────────────────── optimizer ──────────────────────────────
     def configure_optimizers(self):
-        opt = torch.optim.AdamW(self.parameters(), lr=1e-3, weight_decay=1e-2)
+        opt = torch.optim.AdamW(self.parameters(), lr=1e-2, weight_decay=1e-2)
         warmup = LinearLR(opt, start_factor=0.1, total_iters=10)
-        # cosine = CosineAnnealingLR(opt, T_max=self.max_epochs - 10, eta_min=1e-6)
-        scheduler = SequentialLR(opt, schedulers=[warmup], milestones=[10])
+        step = StepLR(opt, step_size=90, gamma=0.1)
+        scheduler = SequentialLR(opt, schedulers=[warmup, step], milestones=[10])
         return {
             "optimizer": opt,
             "lr_scheduler": {
