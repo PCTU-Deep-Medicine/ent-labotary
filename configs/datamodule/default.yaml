@@ -1,5 +1,5 @@
 _target_: src.datamodule.ent.ENTDataModule
 split_root: data/12endo
-batch_size: 32
+batch_size: 64
 num_workers: 4
 image_size: 224

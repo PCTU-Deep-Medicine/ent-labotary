@@ -1,7 +1,6 @@
 import pytorch_lightning as pl
 import torch
 import torch.nn as nn
-from torch.optim.lr_scheduler import LinearLR
 
 from src.utils.metrics import MetricsManager
 
@@ -98,14 +97,37 @@ class BaseModule(pl.LightningModule):
 
     # ──────────────────────────── optimizer ──────────────────────────────
     def configure_optimizers(self):
-        opt = torch.optim.AdamW(self.parameters(), lr=1e-4, weight_decay=1e-2)
-        warmup = LinearLR(opt, start_factor=0.1, total_iters=10)
-        # step = StepLR(opt, step_size=90, gamma=0.1)
-        # scheduler = SequentialLR(opt, schedulers=[warmup], milestones=[10])
+        # 1) Chọn LR theo batch size
+        global_bs = 64  # hoặc tự tính: batch_size_per_gpu * num_gpus * grad_accum
+        base_lr = 1e-4
+        lr = base_lr * max(global_bs / 256.0, 0.5)  # sàn 0.5 cho batch nhỏ
+        lr = min(lr, 1e-4)  # trần để tránh quá cao khi batch lớn
+
+        opt = torch.optim.AdamW(
+            self.parameters(),
+            lr=lr,  # vd ~3e-5 → 1e-4 tuỳ batch
+            weight_decay=1e-2,
+            betas=(0.9, 0.999),
+        )
+
+        # 2) Warmup 5% epochs (ví dụ 15/300)
+        warmup_epochs = max(int(0.05 * self.max_epochs), 5)
+        warmup = torch.optim.lr_scheduler.LinearLR(
+            opt, start_factor=0.1, total_iters=warmup_epochs
+        )
+
+        # 3) Cosine cho phần còn lại (đi về eta_min)
+        remain_epochs = max(self.max_epochs - warmup_epochs, 1)
+        cosine = torch.optim.lr_scheduler.CosineAnnealingLR(
+            opt, T_max=remain_epochs, eta_min=1e-6
+        )
+
+        # 4) Ghép lại
+        sched = torch.optim.lr_scheduler.SequentialLR(
+            opt, schedulers=[warmup, cosine], milestones=[warmup_epochs]
+        )
+
         return {
             "optimizer": opt,
-            "lr_scheduler": {
-                "scheduler": warmup,
-                "interval": "epoch",
-            },
+            "lr_scheduler": {"scheduler": sched, "interval": "epoch"},
         }
