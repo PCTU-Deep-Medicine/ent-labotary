@@ -35,14 +35,32 @@ class ENTDataModule(LightningDataModule):
         train_tf = transforms.Compose(
             [
                 transforms.Resize((self.image_size, self.image_size)),
-                transforms.RandAugment(num_ops=3, magnitude=7),
+                transforms.RandomHorizontalFlip(
+                    p=0.5
+                ),  # vertical flip thường không phù hợp giải phẫu
+                transforms.RandomApply(
+                    [
+                        transforms.ColorJitter(
+                            brightness=0.1, contrast=0.1, saturation=0.05, hue=0.02
+                        )
+                    ],
+                    p=0.5,
+                ),
+                transforms.RandomApply([transforms.GaussianBlur(kernel_size=3)], p=0.2),
                 transforms.ToTensor(),
+                transforms.Normalize(
+                    mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]
+                ),
             ]
         )
+
         eval_tf = transforms.Compose(
             [
                 transforms.Resize((self.image_size, self.image_size)),
                 transforms.ToTensor(),
+                transforms.Normalize(
+                    mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]
+                ),
             ]
         )
         return train_tf, eval_tf
