@@ -34,7 +34,7 @@ if __name__ == "__main__":
         },
         loggers={"wandb": {"project": "ent-endoscopy-ssl"}},
         num_workers=64,
-        resume_interrupted=True,
+        # resume_interrupted=True,
         overwrite=True,  # Overwrite existing outputs.
     )
 
