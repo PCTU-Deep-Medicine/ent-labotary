@@ -32,7 +32,7 @@ if __name__ == "__main__":
             "image_size": (224, 224),
             # "local_view": {"num_views": 0},  # <-- TẮT LOCAL CROPS
         },
-        loggers={"wandb": {"project": "ent-endoscopy-ssl"}},
+        # loggers={"wandb": {"project": "ent-endoscopy-ssl"}},
         num_workers=64,
         # resume_interrupted=True,
         overwrite=True,  # Overwrite existing outputs.
