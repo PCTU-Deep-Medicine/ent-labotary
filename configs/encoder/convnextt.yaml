@@ -1,3 +1,3 @@
 _target_: timm.create_model
-model_name: timm/convnext_tiny.fb_in22k_ft_in1k
+model_name: convnext_tiny
 pretrained: true
