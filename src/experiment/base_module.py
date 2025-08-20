@@ -1,10 +1,10 @@
 import pytorch_lightning as pl
 import torch
-import torch.nn as nn
 
 from src.utils.metrics import MetricsManager
 
 
+# import torch.nn as nn
 class BaseModule(pl.LightningModule):
     """
     LightningModule chung cho bài ENT-Endoscopy.
@@ -19,13 +19,13 @@ class BaseModule(pl.LightningModule):
         self.metrics = MetricsManager(num_classes=num_classes)
         self.max_epochs = max_epochs
 
-        feature_dim = self.encoder.get_classifier().in_features
-        self.encoder.reset_classifier(0)  # reset classifier to get feature dimension
+        # feature_dim = self.encoder.get_classifier().in_features
+        # self.encoder.reset_classifier(0)  # reset classifier to get feature dimension
 
-        if hasattr(self.encoder, "head"):
-            self.encoder.head = nn.Linear(feature_dim, num_classes)
-        elif hasattr(self.encoder, "fc"):
-            self.encoder.fc = nn.Linear(feature_dim, num_classes)
+        # if hasattr(self.encoder, "fc"):
+        #     self.encoder.fc = nn.Linear(feature_dim, num_classes)
+        # elif hasattr(self.encoder, "head"):
+        #     self.encoder.head = nn.Linear(feature_dim, num_classes)
         self.train_losses, self.val_losses = [], []
 
     # ────────────────────────────── forward ──────────────────────────────

@@ -1,0 +1,4 @@
+_target_: timm.create_model
+model_name: timm/mambaout_tiny.in1k
+pretrained: true
+num_classes: 12
