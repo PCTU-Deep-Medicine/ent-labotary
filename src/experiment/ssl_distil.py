@@ -27,7 +27,7 @@ if __name__ == "__main__":
         model="timm/efficientnet_b4.ra2_in1k",  # Pass theH", "d TIMM model.
         method="distillation",  # Use DINO method.
         epochs=300,
-        batch_size=256,
+        batch_size=128,
         transform_args={
             "image_size": (224, 224),
             # "local_view": {"num_views": 0},  # <-- TẮT LOCAL CROPS
