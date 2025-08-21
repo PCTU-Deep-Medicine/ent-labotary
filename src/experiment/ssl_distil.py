@@ -27,7 +27,7 @@ if __name__ == "__main__":
         model=model,
         method="distillation",  # Use DINO method.
         epochs=300,
-        batch_size=2,
+        batch_size=128,
         transform_args={
             "image_size": (224, 224),
             # "local_view": {"num_views": 0},  # <-- TẮT LOCAL CROPS
@@ -37,7 +37,7 @@ if __name__ == "__main__":
             # Replace with your own url
             "teacher_url": os.environ.get("DINOV3_TEACHER_URL", "default_value"),
         },
-        # num_workers=64,
+        num_workers=64,
         resume_interrupted=True,
         overwrite=True,  # Overwrite existing outputs.
     )
