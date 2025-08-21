@@ -14,8 +14,9 @@ from utils.upload_ckpt import upload_checkpoint  # noqa: E402
 
 if __name__ == "__main__":
     model = timm.create_model(
-        "timm/efficientnet_b4.ra2_in1k",
+        "efficientnet_b4",
         pretrained=True,
+        num_classes=0,
         # dynamic_img_size=True,
     )  # Load the model.
 
@@ -24,7 +25,7 @@ if __name__ == "__main__":
     lightly_train.train(
         out="outputs/ssl_distil/efficientnet",  # Output directory.
         data="data/12endo/train",  # Directory with images.
-        model="timm/efficientnet_b4.ra2_in1k",  # Pass theH", "d TIMM model.
+        model=model,  # Pass theH", "d TIMM model.
         method="distillation",  # Use DINO method.
         epochs=300,
         batch_size=128,
