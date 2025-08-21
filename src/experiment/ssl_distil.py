@@ -14,7 +14,7 @@ from utils.upload_ckpt import upload_checkpoint  # noqa: E402
 
 if __name__ == "__main__":
     model = timm.create_model(
-        "resnet50",
+        "efficientnet_b0",
         pretrained=True,
         # dynamic_img_size=True,
     )  # Load the model.
@@ -22,7 +22,7 @@ if __name__ == "__main__":
     # if isinstance(getattr(model, "global_pool", None), str):
     #     model.global_pool = nn.AdaptiveAvgPool2d(1)  # giờ _pool sẽ callable
     lightly_train.train(
-        out="outputs/ssl_distil2/resnet50",  # Output directory.
+        out="outputs/ssl_distil/efficientnet",  # Output directory.
         data="data/12endo/train",  # Directory with images.
         model=model,  # Pass theH", "d TIMM model.
         method="distillation",  # Use DINO method.
@@ -44,8 +44,8 @@ if __name__ == "__main__":
     )
 
     lightly_train.export(
-        out="outputs/ssl_distil2/resnet50/resnet50_distil_2.pth",
-        checkpoint="outputs/ssl_distil2/resnet50/checkpoints/last.ckpt",
+        out="outputs/ssl_distil/efficientnet/efficientnet_distil.pth",
+        checkpoint="outputs/ssl_distil/efficientnet/checkpoints/last.ckpt",
         part="model",
         format="torch_state_dict",
     )
