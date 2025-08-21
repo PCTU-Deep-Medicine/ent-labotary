@@ -1,6 +1,5 @@
 import pytorch_lightning as pl
 import torch
-import torch.nn as nn
 
 from src.utils.metrics import MetricsManager
 
@@ -19,23 +18,19 @@ class BaseModule(pl.LightningModule):
         self.metrics = MetricsManager(num_classes=num_classes)
         self.max_epochs = max_epochs
 
-        feature_dim = self.encoder.get_classifier().in_features
-        self.encoder.reset_classifier(0)  # reset classifier to get feature dimension
+        self.encoder.reset_classifier(12)  # reset classifier to get feature dimension
 
-        if hasattr(self.encoder, "fc"):
-            self.encoder.fc = nn.Linear(feature_dim, num_classes)
-        elif hasattr(self.encoder, "head"):
-            self.encoder.head = nn.Linear(feature_dim, num_classes)
         self.train_losses, self.val_losses = [], []
 
     # ────────────────────────────── forward ──────────────────────────────
     def forward(self, x):
-        return self.encoder(x)
+        y = self.encoder(x)
+        return y
 
     # ─────────────────────────────── train ───────────────────────────────
     def training_step(self, batch, batch_idx):
         x, y = batch
-        logits = self(x)
+        logits = self.encoder(x)
         loss = self.loss_fn(logits, y)
         self.train_losses.append(loss)
         return loss
@@ -48,7 +43,7 @@ class BaseModule(pl.LightningModule):
     # ────────────────────────────── validate ─────────────────────────────
     def validation_step(self, batch, batch_idx):
         x, y = batch
-        logits = self(x)
+        logits = self.encoder(x)
         probs = torch.softmax(logits, dim=1)
         preds = torch.argmax(probs, dim=1)
         loss = self.loss_fn(logits, y)
@@ -73,7 +68,7 @@ class BaseModule(pl.LightningModule):
     # ─────────────────────────────── test ────────────────────────────────
     def test_step(self, batch, batch_idx):
         x, y = batch
-        logits = self(x)
+        logits = self.encoder(x)
         probs = torch.softmax(logits, dim=1)
         preds = torch.argmax(probs, dim=1)
         loss = self.loss_fn(logits, y)
