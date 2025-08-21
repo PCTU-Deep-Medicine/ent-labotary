@@ -35,9 +35,8 @@ if __name__ == "__main__":
         method_args={
             "teacher": "dinov3/vitb16",
             # Replace with your own url
-            "teacher_url": 'https://dinov3.llamameta.net/dinov3_vitb16/dinov3_vitb16_pretrain_lvd1689m-73cec8be.pth?Policy=eyJTdGF0ZW1lbnQiOlt7InVuaXF1ZV9oYXNoIjoicGhjdzV5anNzeG96OG1vdHdqenc5dGxqIiwiUmVzb3VyY2UiOiJodHRwczpcL1wvZGlub3YzLmxsYW1hbWV0YS5uZXRcLyoiLCJDb25kaXRpb24iOnsiRGF0ZUxlc3NUaGFuIjp7IkFXUzpFcG9jaFRpbWUiOjE3NTU4MzYxODh9fX1dfQ__&Signature=QqMep2UH3Bgdo3tWYNX7hA9jKn4eqZkc-C1HgjFPWz9%7EgxB14IhnGZpcS-SynMPjn1R4gRX-YngpOJIW46FKvcdjKE38v7Tp2CDbm1DKW8G3ykjper3XkXKTtjnpQFlQnftSV8bNSeNrjHc1aCK1j2m4hy9jN0w1Y5vvcnLXNhvGz%7E4E43ce0hCMY-cfJC%7EYXTawGrWnAQto9oThOxyQwJaQfMUE5XY7WWRCHlN-0v2hMbmR5EleGwdWkHpM3kH6SqF6SyLGjxjSv2XF1L3x2jrulAhS%7EbdLH-Ef7s3-tMyI0VLTbPyqEpDEaO9L1%7EePDYQZwnLxJZsBCvtRU8sQpQ__&Key-Pair-Id=K15QRJLYKIFSLZ&Download-Request-ID=752086624458100',  # noqa: E501
+            "teacher_url": os.environ.get("DINOV3_TEACHER_URL", "default_value"),
         },
-        loggers={"wandb": {"project": "ent-endoscopy-ssl"}},
         num_workers=64,
         resume_interrupted=True,
         overwrite=True,  # Overwrite existing outputs.
