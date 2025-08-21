@@ -14,9 +14,9 @@ from utils.upload_ckpt import upload_checkpoint  # noqa: E402
 
 if __name__ == "__main__":
     model = timm.create_model(
-        "resnet50",
+        "efficientnet_b4",
         pretrained=True,
-        # num_class es=0,
+        num_classes=0,
         # dynamic_img_size=True,
     )  # Load the model.
 
