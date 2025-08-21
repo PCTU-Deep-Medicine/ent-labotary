@@ -14,21 +14,20 @@ from utils.upload_ckpt import upload_checkpoint  # noqa: E402
 
 if __name__ == "__main__":
     model = timm.create_model(
-        "efficientnet_b4",
+        "convnextv2_tiny",
         pretrained=True,
-        num_classes=0,
         # dynamic_img_size=True,
     )  # Load the model.
 
     # if isinstance(getattr(model, "global_pool", None), str):
     #     model.global_pool = nn.AdaptiveAvgPool2d(1)  # giờ _pool sẽ callable
     lightly_train.train(
-        out="outputs/ssl_distil/efficientnet",  # Output directory.
+        out="outputs/ssl_distil/convnext",  # Output directory.
         data="data/12endo/train",  # Directory with images.
-        model=model,  # Pass theH", "d TIMM model.
+        model=model,
         method="distillation",  # Use DINO method.
         epochs=300,
-        batch_size=128,
+        batch_size=2,
         transform_args={
             "image_size": (224, 224),
             # "local_view": {"num_views": 0},  # <-- TẮT LOCAL CROPS
@@ -38,14 +37,14 @@ if __name__ == "__main__":
             # Replace with your own url
             "teacher_url": os.environ.get("DINOV3_TEACHER_URL", "default_value"),
         },
-        num_workers=64,
+        # num_workers=64,
         resume_interrupted=True,
         overwrite=True,  # Overwrite existing outputs.
     )
 
     lightly_train.export(
-        out="outputs/ssl_distil/efficientnet/efficientnet_distil.pth",
-        checkpoint="outputs/ssl_distil/efficientnet/checkpoints/last.ckpt",
+        out="outputs/ssl_distil/convnext/convnext_distil.pth",
+        checkpoint="outputs/ssl_distil/convnext/checkpoints/last.ckpt",
         part="model",
         format="torch_state_dict",
     )
