@@ -6,5 +6,3 @@ pip install --pre --upgrade --no-cache-dir torch --extra-index-url https://downl
 pip install --pre --upgrade --no-cache-dir torchvision --extra-index-url https://download.pytorch.org/whl/nightly/cu128
 sh scripts/prepare_data.sh
 python3 scripts/split.py
-# 45dfee4504ac5fab852dfb6a3d5af96af6f6c67b
-# git clone https://github.com/PCTU-Deep-Medicine/ent-labotary.git
