@@ -1,0 +1,4 @@
+_target_: timm.create_model
+model_name: convnextv2_tiny
+pretrained: false
+checkpoint_path: outputs/ssl_distil/convnext/convnext_distil.pth
