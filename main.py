@@ -40,7 +40,8 @@ def main(cfg: DictConfig) -> None:
 
     # cập nhật chỉ số monitor
     if ckpt_cb:
-        ckpt_cb.monitor = "val/macro/f1"  # <── NEW monitor
+        # Giữ monitor từ config (vd: val/joint/macro/f1) nếu đã cấu hình đúng
+        # Chỉ bổ sung subfolder để tránh ghi đè các run trước
         ckpt_cb.dirpath = os.path.join(ckpt_cb.dirpath, "run_0")
 
     # ─────────── trainer ───────────

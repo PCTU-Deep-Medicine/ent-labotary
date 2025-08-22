@@ -1,0 +1,11 @@
+checkpoint:
+  _target_: pytorch_lightning.callbacks.ModelCheckpoint
+  dirpath: outputs/checkpoints
+  filename: ${user}_${experiment.name}_${experiment.encoder.model_name}_${now:%Y%m%d_%H%M%S}
+  # Chọn metric đại diện nhất cho yêu cầu đúng đủ: joint macro f1 (full joint = 36 lớp)
+  # Nếu muốn theo fine head: đổi lại thành val/label/macro/f1
+  monitor: val/joint/macro/f1  # phải khớp với metric được log trong validation epoch end
+  mode: max
+  save_top_k: 1
+  save_weights_only: true
+  verbose: true

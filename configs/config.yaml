@@ -1,4 +1,4 @@
 user: null
 defaults:
-  - experiment: baseline
+  - experiment: multitask  # default stays baseline; override with +experiment=multitask to use multi-head
   - _self_
