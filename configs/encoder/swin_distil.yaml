@@ -1,0 +1,3 @@
+_target_: timm.create_model
+model_name: swin_s3_tiny_224.ms_in1k
+checkpoint_path: outputs/ssl_distil/swin/swin_distil.pth 

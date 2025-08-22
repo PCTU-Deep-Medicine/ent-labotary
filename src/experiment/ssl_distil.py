@@ -14,15 +14,15 @@ from utils.upload_ckpt import upload_checkpoint  # noqa: E402
 
 if __name__ == "__main__":
     model = timm.create_model(
-        "convnextv2_tiny",
+        "swin_s3_tiny_224.ms_in1k",
         pretrained=True,
-        # dynamic_img_size=True,
+        dynamic_img_size=True,
     )  # Load the model.
 
     # if isinstance(getattr(model, "global_pool", None), str):
     #     model.global_pool = nn.AdaptiveAvgPool2d(1)  # giờ _pool sẽ callable
     lightly_train.train(
-        out="outputs/ssl_distil/convnext",  # Output directory.
+        out="outputs/ssl_distil/swin",  # Output directory.
         data="data/12endo/train",  # Directory with images.
         model=model,
         method="distillation",  # Use DINO method.
@@ -43,8 +43,8 @@ if __name__ == "__main__":
     )
 
     lightly_train.export(
-        out="outputs/ssl_distil/convnext/convnext_distil.pth",
-        checkpoint="outputs/ssl_distil/convnext/checkpoints/last.ckpt",
+        out="outputs/ssl_distil/swin/swin_distil.pth",
+        checkpoint="outputs/ssl_distil/swin/checkpoints/last.ckpt",
         part="model",
         format="torch_state_dict",
     )
