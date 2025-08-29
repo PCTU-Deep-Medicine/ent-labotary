@@ -1,7 +1,7 @@
 checkpoint:
   _target_: pytorch_lightning.callbacks.ModelCheckpoint
   dirpath: outputs/checkpoints
-  filename: ${user}_${experiment.name}_${experiment.encoder.model_name}_${now:%Y%m%d_%H%M%S}
+  filename: ${user}_${experiment.name}_${experiment.experiment.encoder.model_name}_${now:%Y%m%d_%H%M%S}
   monitor: val/macro/f1
   mode: max
   save_top_k: 1

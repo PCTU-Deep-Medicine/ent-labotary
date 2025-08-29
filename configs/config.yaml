@@ -1,4 +1,4 @@
 user: null
 defaults:
-  - experiment: baseline
+  - experiment: vmamba
   - _self_

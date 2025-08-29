@@ -1,6 +1,6 @@
 defaults:
   - _self_
-  - /encoder@experiment.encoder: resnet50
+  - /encoder@experiment.encoder: vmamba
   - /loss: ce
   - /datamodule: default
   - /trainer: default
@@ -8,10 +8,10 @@ defaults:
   - /callbacks: default
 
 model:
-  _target_: src.experiment.base_module.BaseModule
-  encoder: ${experiment.encoder}
+  _target_: src.experiment.vmamba.VmambaModule
+  encoder: '${experiment.experiment.encoder}' 
   loss: ${experiment.loss}
   max_epochs: ${experiment.trainer.max_epochs}
 
-name: baseline
+name: vmamba
 
